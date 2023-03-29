@@ -1,3 +1,5 @@
+'''During training, the Trainer object iterates over the training data in batches and applies the forward and backward passes of the network using the optimizer and loss function to compute and update the gradients. The eval_net method is called after a specified number of epochs to evaluate the performance of the network on the validation data. The train method handles the overall training and evaluation process, as well as saving the network state after each epoch and at regular intervals. The learning rate is adjusted using the learning rate scheduler provided during initialization.'''
+
 import torch
 import numpy as np
 from utils.stats_manager import StatsManager
@@ -6,6 +8,7 @@ import os
 
 
 class Trainer:
+    #__init__: This method initializes the Trainer object with the provided network, data loaders, loss function, optimizer, learning rate scheduler, and configuration settings.
     def __init__(self, network, train_dataloader, eval_dataloader, criterion, optimizer, lr_scheduler, config):
         self.config = config
         self.network = network
@@ -17,7 +20,7 @@ class Trainer:
         self.lr_scheduler = lr_scheduler
 
         self.best_metric = 0.0
-
+    #train_epoch: This method trains the network for one epoch using the training data and updates the weights using the backpropagation algorithm.
     def train_epoch(self, epoch):
         running_loss = []
         self.network.train()
@@ -42,7 +45,7 @@ class Trainer:
                 save_logs_train(os.path.join(self.config['exp_path'], self.config['exp_name']),
                                 f'Training loss on iteration {idx} = {running_loss}')
                 running_loss = []
-
+    #eval_net: This method evaluates the network on the validation data and calculates the evaluation loss, as well as the mean depth, distance, and magnitude errors using a StatsManager object.
     def eval_net(self, epoch):
         stats_pred_depth = []
         stats_pred_distance = []
@@ -89,7 +92,7 @@ class Trainer:
         if self.best_metric < mean_magnitude_err:
             self.best_metric = mean_magnitude_err
             self.save_net_state(None, best=True)
-
+    #train: This method trains the network for the specified number of epochs and saves the model state after each epoch and at regular intervals. The learning rate is adjusted after each epoch using the learning rate scheduler.
     def train(self):
         if self.config['resume_training'] is True:
             checkpoint = torch.load(os.path.join(self.config['exp_path'], self.config['exp_name'], 'latest_checkpoint.pkl'),
